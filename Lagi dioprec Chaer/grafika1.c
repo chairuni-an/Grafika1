@@ -19,52 +19,72 @@ int main()
     int x = 0, y = 0;
     long int location = 0;
 
-    void makeBackground(int red, int green, int blue){
+    #define background_red 235
+    #define background_green 138
+    #define background_blue 163
+
+    void makeBackground(){
         for (y = 0; y < 236; y++)//maks 236
             for (x = 0; x < 800; x++) {//maks 800
 
                 location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
                            (y+vinfo.yoffset) * finfo.line_length;
 
-                if (vinfo.bits_per_pixel == 32) { //color information
-                    *(fbp + location) = blue;        // Some blue
-                    *(fbp + location + 1) = green;     // A little green
-                    *(fbp + location + 2) = red;    // A lot of red
+                if (vinfo.bits_per_pixel == 32) { // color information
+                    *(fbp + location) = background_blue;        // blue
+                    *(fbp + location + 1) = background_green;     // green
+                    *(fbp + location + 2) = background_red;    // red
                     *(fbp + location + 3) = 0;      // No transparency
-            //location += 4;
-                } else  { //assume 16bpp
-                    int b = 10;
-                    int g = 10;     // A little green
-                    int r = 10;    // A lot of red
-                    unsigned short int t = r<<11 | g << 5 | b;
-                    *((unsigned short int*)(fbp + location)) = t;
+                } else { 
+                    printf("can't write\n");
                 }
             }
-	}
+    }
 
-	void makeBlock(int absis, int ordinat, int red, int green, int blue){
-		for (y = ordinat; y < ordinat+10; y++)//maks 236
-		    for (x = absis; x < ordinat+10; x++) {//maks 800
+    void drawBlock(int absis, int ordinat, int red, int green, int blue){
+        for (y = ordinat; y < ordinat+10; y++)//maks 236
+            for (x = absis; x < ordinat+10; x++) {//maks 800
 
-		        location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
-		                   (y+vinfo.yoffset) * finfo.line_length;
+                location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
+                           (y+vinfo.yoffset) * finfo.line_length;
 
-		        if (vinfo.bits_per_pixel == 32) { //color information
-		            *(fbp + location) = blue;        // Some blue
-		            *(fbp + location + 1) = green;     // A little green
-		            *(fbp + location + 2) = red;    // A lot of red
-		            *(fbp + location + 3) = 0;      // No transparency
-		    //location += 4;
-		        } else  { //assume 16bpp
-		            int b = 10;
-		            int g = 10;     // A little green
-		            int r = 10;    // A lot of red
-		            unsigned short int t = r<<11 | g << 5 | b;
-		            *((unsigned short int*)(fbp + location)) = t;
-		        }
-		    }
-	}
-	
+                if (vinfo.bits_per_pixel == 32) { // color information
+                    *(fbp + location) = blue;        // blue
+                    *(fbp + location + 1) = green;     // green
+                    *(fbp + location + 2) = red;    // red
+                    *(fbp + location + 3) = 0;      // No transparency
+                } else  { 
+                printf("can't write\n");
+                }
+            }
+    }
+    void eraseBlock(int absis, int ordinat){
+        for (y = ordinat; y < ordinat+10; y++)//maks 236
+            for (x = absis; x < ordinat+10; x++) {//maks 800
+
+                location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
+                           (y+vinfo.yoffset) * finfo.line_length;
+
+                if (vinfo.bits_per_pixel == 32) { // color information
+                    *(fbp + location) = background_blue;        // blue
+                    *(fbp + location + 1) = background_green;     // green
+                    *(fbp + location + 2) = background_red;    // red
+                    *(fbp + location + 3) = 0;      // No transparency
+                } else { 
+                    printf("can't write\n");
+                }
+            }
+    }
+
+    void fly(int red, int green, int blue){
+        for(int i = 0; i<10; i++){
+            drawBlock(10*i,10*i,red,green,blue);
+            printf("Heiho\n");
+            sleep(1000);
+            eraseBlock(10*i,10*i);
+        }
+    }
+    
 
     // Open the file for reading and writing
     fbfd = open("/dev/fb0", O_RDWR);
@@ -100,36 +120,10 @@ int main()
     }
     printf("The framebuffer device was mapped to memory successfully.\n");
 
-    x = 100; y = 100;       // Where we are going to put the pixel
-
     makeBackground(0, 200, 255);
-    //part2
-    for (y = 0; y < 300; y++)
-        for (x = 0; x < 150; x++) {
-
-            location = (x+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
-                       (y+vinfo.yoffset) * finfo.line_length;
-
-            if (vinfo.bits_per_pixel == 32) { //color information
-                *(fbp + location) = 255;        // Some blue
-                *(fbp + location + 1) = 0;     // A little green
-                *(fbp + location + 2) = 255;    // A lot of red
-                *(fbp + location + 3) = 0;      // No transparency
-        //location += 4;
-            } else  { //assume 16bpp
-                int b = 10;
-                int g = 10;     // A little green
-                int r = 10;    // A lot of red
-                unsigned short int t = r<<11 | g << 5 | b;
-                *((unsigned short int*)(fbp + location)) = t;
-            }
-
-        }
-	//sleep(1000);
-	//printf("Alhamdulillah");
+    drawBlock(0, 0, 200, 100, 0);
+    fly(200,100,0);
     munmap(fbp, screensize);
     close(fbfd);
-	printf("Alhamdulillah");
     return 0;
 }
-//enter code here
