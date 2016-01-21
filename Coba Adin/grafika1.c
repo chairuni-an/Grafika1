@@ -174,29 +174,29 @@ int font[][FONT_WIDTH * FONT_HEIGHT] = {
                                             0, 1, 0, 0, 0,
                                             1, 1, 1, 1, 1 },
                                             // TIE Fighter Kiri atas
-                                          { 0, 1, 0, 1, 0,
+                                          { 0, 1, 0, 0, 0,
+                                            1, 0, 0, 0, 0,
+                                            1, 0, 0, 1, 1,
                                             1, 0, 1, 0, 1,
-                                            1, 1, 0, 1, 1,
-                                            1, 0, 1, 0, 1,
-                                            0, 1, 0, 1, 0 },
+                                            1, 1, 1, 0, 1 },
                                             // TIE Fighter Kanan atas
-                                            { 0, 1, 0, 1, 0,
+                                          { 0, 0, 0, 1, 0,
+                                            0, 0, 0, 0, 1,
+                                            1, 1, 0, 0, 1,
                                             1, 0, 1, 0, 1,
-                                            1, 1, 0, 1, 1,
-                                            1, 0, 1, 0, 1,
-                                            0, 1, 0, 1, 0 },
+                                            1, 0, 1, 1, 1 },
                                             // TIE Fighter Kiri bawah
-                                            { 0, 1, 0, 1, 0,
+                                          { 1, 1, 1, 0, 1,
                                             1, 0, 1, 0, 1,
-                                            1, 1, 0, 1, 1,
-                                            1, 0, 1, 0, 1,
-                                            0, 1, 0, 1, 0 },
+                                            1, 0, 0, 1, 1,
+                                            1, 0, 0, 0, 0,
+                                            0, 1, 0, 0, 0 },
                                             // TIE Fighter Kanan bawah
-                                            { 0, 1, 0, 1, 0,
+                                          { 1, 0, 1, 1, 1,
                                             1, 0, 1, 0, 1,
-                                            1, 1, 0, 1, 1,
-                                            1, 0, 1, 0, 1,
-                                            0, 1, 0, 1, 0 }
+                                            1, 1, 0, 0, 1,
+                                            0, 0, 0, 0, 1,
+                                            0, 0, 0, 1, 0 }
                                         };
 int fbfd = 0;
 struct fb_var_screeninfo vinfo;
@@ -239,7 +239,7 @@ void charBuilder(char c, int startX, int startY) {
     for (j = 0; j < FONT_HEIGHT; j++) {
         for (i = 0; i < FONT_WIDTH; i++) {
             if ( font[c - 65][j * FONT_WIDTH + i] == 1 ) {
-                blockBuilder(startX + i * FONT_SIZE, startY + j * FONT_SIZE, 255, 0, 0); //Ngilangin warna
+                blockBuilder(startX + i * FONT_SIZE, startY + j * FONT_SIZE, 255, 0, 0);
             }
         }
     }
@@ -285,6 +285,11 @@ void solidBackground() {
     }
 }
 
+void display(char* input, int reductor, int order){
+  char* words = input;
+  stringBuilder(input, (vinfo.xres / 2) - (strlen(input) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(input)-1) * FONT_SIZE) )/2, vinfo.yres-reductor);
+}
+
 int main() {
 
     // Open the file for reading and writing
@@ -328,8 +333,9 @@ int main() {
     solidBackground();
     while (reductor < vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 6)) {
 
-        char adin[] = "ADIN";
-        stringBuilder(adin, (vinfo.xres / 2) - (strlen(adin) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(adin)-1) * FONT_SIZE) )/2, vinfo.yres-reductor);
+        display("ADIN", reductor, 0);
+        // char adin[] = "ADIN";
+        // stringBuilder(adin, (vinfo.xres / 2) - (strlen(adin) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(adin)-1) * FONT_SIZE) )/2, vinfo.yres-reductor);
 
         char fery[] = "FERY";
         stringBuilder(fery, (vinfo.xres / 2) - (strlen(fery) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(fery)-1) * FONT_SIZE) )/2, vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 1) - reductor);
