@@ -173,6 +173,30 @@ int font[][FONT_WIDTH * FONT_HEIGHT] = {
                                             0, 0, 1, 0, 0,
                                             0, 1, 0, 0, 0,
                                             1, 1, 1, 1, 1 },
+                                            // TIE Fighter Kiri atas
+                                          { 0, 1, 0, 1, 0,
+                                            1, 0, 1, 0, 1,
+                                            1, 1, 0, 1, 1,
+                                            1, 0, 1, 0, 1,
+                                            0, 1, 0, 1, 0 },
+                                            // TIE Fighter Kanan atas
+                                            { 0, 1, 0, 1, 0,
+                                            1, 0, 1, 0, 1,
+                                            1, 1, 0, 1, 1,
+                                            1, 0, 1, 0, 1,
+                                            0, 1, 0, 1, 0 },
+                                            // TIE Fighter Kiri bawah
+                                            { 0, 1, 0, 1, 0,
+                                            1, 0, 1, 0, 1,
+                                            1, 1, 0, 1, 1,
+                                            1, 0, 1, 0, 1,
+                                            0, 1, 0, 1, 0 },
+                                            // TIE Fighter Kanan bawah
+                                            { 0, 1, 0, 1, 0,
+                                            1, 0, 1, 0, 1,
+                                            1, 1, 0, 1, 1,
+                                            1, 0, 1, 0, 1,
+                                            0, 1, 0, 1, 0 }
                                         };
 int fbfd = 0;
 struct fb_var_screeninfo vinfo;
@@ -181,40 +205,33 @@ long int screensize = 0;
 char *fbp = 0;
 long int location = 0;
 
-void blockBuilder(int x, int y, int clear) {
-    // Map the device to memory
-    fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
-    if ((int)fbp == -1) {
-        perror("Error: failed to map framebuffer device to memory");
-        exit(4);
-    }
-    //printf("The framebuffer device was mapped to memory successfully.\n");
-
+void blockBuilder(int x, int y, int blue, int green, int red) {
     int i, j;
     // Figure out where in memory to put the pixel
     for (j = y; j < y + FONT_SIZE ; j++) {
         for (i = x; i < x + FONT_SIZE; i++) {
 
-            location = (i+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
-                       (j+vinfo.yoffset) * finfo.line_length;
+            if ( i >= 0 && j >= 0 && i < vinfo.xres - 50 && j < vinfo.yres - 50 ) {
+                location = (i+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
+                           (j+vinfo.yoffset) * finfo.line_length;
 
-            if (vinfo.bits_per_pixel == 32) {
-                *(fbp + location) = 255 - clear;        // Blue
-                *(fbp + location + 1) = 255 - clear;    // Green
-                *(fbp + location + 2) = 255 - clear;    // Red
-                *(fbp + location + 3) = 0;      // Alpha
-        //location += 4;
-            } else  { //assume 16bpp
-                int b = 255 - clear;
-                int g = 255 - clear;     // A little green
-                int r = 255 - clear;    // A lot of red
-                unsigned short int t = r<<11 | g << 5 | b;
-                *((unsigned short int*)(fbp + location)) = t;
+                if (vinfo.bits_per_pixel == 32) {
+                    *(fbp + location) = 255 - blue;        // Blue
+                    *(fbp + location + 1) = 255 - green;    // Green
+                    *(fbp + location + 2) = 255 - red;    // Red
+                    *(fbp + location + 3) = 0;      // Alpha
+            //location += 4;
+                } else  { //assume 16bpp
+                    int b = 255 - blue;
+                    int g = 255 - green;     // A little green
+                    int r = 255 - red;    // A lot of red
+                    unsigned short int t = r<<11 | g << 5 | b;
+                    *((unsigned short int*)(fbp + location)) = t;
+                }
             }
 
         }
     }
-    munmap(fbp, screensize);
 }
 
 void charBuilder(char c, int startX, int startY) {
@@ -222,9 +239,7 @@ void charBuilder(char c, int startX, int startY) {
     for (j = 0; j < FONT_HEIGHT; j++) {
         for (i = 0; i < FONT_WIDTH; i++) {
             if ( font[c - 65][j * FONT_WIDTH + i] == 1 ) {
-                blockBuilder(startX + i * FONT_SIZE, startY + j * FONT_SIZE, 0);
-            } else {
-                blockBuilder(startX + i * FONT_SIZE, startY + j * FONT_SIZE, 255);
+                blockBuilder(startX + i * FONT_SIZE, startY + j * FONT_SIZE, 255, 0, 0); //Ngilangin warna
             }
         }
     }
@@ -244,14 +259,6 @@ char* receiveInput(char *s){
 }
 
 void solidBackground() {
-    // Map the device to memory
-    fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
-    if ((int)fbp == -1) {
-        perror("Error: failed to map framebuffer device to memory");
-        exit(4);
-    }
-    //printf("The framebuffer device was mapped to memory successfully.\n");
-
     int i, j;
     // Figure out where in memory to put the pixel
     for (j = 0; j < vinfo.yres - 50; j++) {
@@ -276,7 +283,6 @@ void solidBackground() {
 
         }
     }
-    munmap(fbp, screensize);
 }
 
 int main() {
@@ -306,20 +312,47 @@ int main() {
     // Figure out the size of the screen in bytes
     screensize = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
 
+    // Map the device to memory
+    fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
+    if ((int)fbp == -1) {
+        perror("Error: failed to map framebuffer device to memory");
+        exit(4);
+    }
+    //printf("The framebuffer device was mapped to memory successfully.\n");
 
     //char str[100];
     //receiveInput(str);
 
     int reductor = 0;
 
-    while (reductor < vinfo.yres-FONT_SIZE*FONT_HEIGHT-10) {
-        char str[] = {'Z', 'Y', 'X' , 'W' , 'V' , 'U' ,'\0'};
-        solidBackground();
-        stringBuilder(str, 50, vinfo.yres-FONT_SIZE*FONT_HEIGHT-10-reductor);
+    solidBackground();
+    while (reductor < vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 6)) {
+
+        char adin[] = "ADIN";
+        stringBuilder(adin, (vinfo.xres / 2) - (strlen(adin) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(adin)-1) * FONT_SIZE) )/2, vinfo.yres-reductor);
+
+        char fery[] = "FERY";
+        stringBuilder(fery, (vinfo.xres / 2) - (strlen(fery) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(fery)-1) * FONT_SIZE) )/2, vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 1) - reductor);
+
+        char wawan[] = "WAWAN";
+        stringBuilder(wawan, (vinfo.xres / 2) - (strlen(wawan) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(wawan)-1) * FONT_SIZE) )/2, vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 2) - reductor);
+
+        char chaer[] = "CHAER";
+        stringBuilder(chaer, (vinfo.xres / 2) - (strlen(chaer) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(chaer)-1) * FONT_SIZE) )/2, vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 3) - reductor);
+
+        char julio[] = "JULIO";
+        stringBuilder(julio, (vinfo.xres / 2) - (strlen(julio) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(julio)-1) * FONT_SIZE) )/2, vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 4) - reductor);
+
+        char ibrohim[] = "BOIM[";
+        stringBuilder(ibrohim, (vinfo.xres / 2) - (strlen(ibrohim) * (FONT_WIDTH * FONT_SIZE ) + ((strlen(ibrohim)-1) * FONT_SIZE) )/2, vinfo.yres + (FONT_SIZE * (FONT_HEIGHT + 2) * 5) - reductor);
+
         ++reductor;
-        usleep(10000);
         //sleep(1);
+
+        usleep(10000);
+        solidBackground();
     }
+    munmap(fbp, screensize);
 
     close(fbfd);
     return 0;

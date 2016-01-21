@@ -88,17 +88,17 @@ void blockBuilder(int x, int y, int clear) {
                        (j+vinfo.yoffset) * finfo.line_length;
 
             if (vinfo.bits_per_pixel == 32) {
-                *(fbp + location) = 255 - clear;        // Blue
-                *(fbp + location + 1) = 255 - clear;    // Green
-                *(fbp + location + 2) = 255 - clear;    // Red
-                *(fbp + location + 3) = 0;      // Alpha
+                *(bbp + location) = 255 - clear;        // Blue
+                *(bbp + location + 1) = 255 - clear;    // Green
+                *(bbp + location + 2) = 255 - clear;    // Red
+                *(bbp + location + 3) = 0;      // Alpha
         //location += 4;
             } else  { //assume 16bpp
                 int b = 255 - clear;
                 int g = 255 - clear;     // A little green
                 int r = 255 - clear;    // A lot of red
                 unsigned short int t = r<<11 | g << 5 | b;
-                *((unsigned short int*)(fbp + location)) = t;
+                *((unsigned short int*)(bbp + location)) = t;
             }
 
         }
