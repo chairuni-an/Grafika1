@@ -312,10 +312,10 @@ int main() {
 
     int reductor = 0;
 
-    while (reductor < 100) {
-        char str[] = {'B', 'C', 'A' ,'\0'};
+    while (reductor < vinfo.yres-FONT_SIZE*FONT_HEIGHT-10) {
+        char str[] = {'Z', 'Y', 'X' , 'W' , 'V' , 'U' ,'\0'};
         solidBackground();
-        stringBuilder(str, 100, 100-reductor);
+        stringBuilder(str, 50, vinfo.yres-FONT_SIZE*FONT_HEIGHT-10-reductor);
         ++reductor;
         usleep(10000);
         //sleep(1);
@@ -323,4 +323,7 @@ int main() {
 
     close(fbfd);
     return 0;
+    #define FONT_SIZE 10
+    #define FONT_WIDTH 5
+    #define FONT_HEIGHT 5
 }
