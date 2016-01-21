@@ -119,10 +119,7 @@ void charBuilder(char c, int startX, int startY) {
     }
 }
 
-void stringBuilder(char *s) {
-    int startX = 100;
-    int startY = 100;
-
+void stringBuilder(char *s, int startX, int startY) {
     int i;
     for (i = 0; i < strlen(s); i++) {
         charBuilder(s[i], startX + i * FONT_SIZE * (FONT_WIDTH + 1), startY);
@@ -133,6 +130,42 @@ void stringBuilder(char *s) {
 char* receiveInput(char *s){
     scanf("%99s",s);
     return s;
+}
+
+void solidBackground() {
+    // Map the device to memory
+    fbp = (char *)mmap(0, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fbfd, 0);
+    if ((int)fbp == -1) {
+        perror("Error: failed to map framebuffer device to memory");
+        exit(4);
+    }
+    //printf("The framebuffer device was mapped to memory successfully.\n");
+
+    int i, j;
+    // Figure out where in memory to put the pixel
+    for (j = 0; j < vinfo.yres - 50; j++) {
+        for (i = 0; i < vinfo.xres - 50; i++) {
+
+            location = (i+vinfo.xoffset) * (vinfo.bits_per_pixel/8) +
+                       (j+vinfo.yoffset) * finfo.line_length;
+
+            if (vinfo.bits_per_pixel == 32) {
+                *(fbp + location) = 0;        // Blue
+                *(fbp + location + 1) = 0;    // Green
+                *(fbp + location + 2) = 0;    // Red
+                *(fbp + location + 3) = 0;      // Alpha
+        //location += 4;
+            } else  { //assume 16bpp
+                int b = 0;
+                int g = 0;     // A little green
+                int r = 0;    // A lot of red
+                unsigned short int t = r<<11 | g << 5 | b;
+                *((unsigned short int*)(fbp + location)) = t;
+            }
+
+        }
+    }
+    munmap(fbp, screensize);    
 }
 
 int main() {
@@ -163,10 +196,20 @@ int main() {
     screensize = vinfo.xres * vinfo.yres * vinfo.bits_per_pixel / 8;
 
 
-    char str[100];
-    receiveInput(str);
+    //char str[100];
+    //receiveInput(str);
 
-    stringBuilder(str);
+    int reductor = 0;
+
+    while (reductor < 100) {
+        char str[] = {'B', 'C', 'A' ,'\0'};
+        solidBackground();
+        stringBuilder(str, 100, 100-reductor);
+        ++reductor;
+        usleep(1000);
+        //sleep(1);
+    }
+
     close(fbfd);
     return 0;
 }
